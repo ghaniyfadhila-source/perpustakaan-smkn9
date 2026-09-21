@@ -1,0 +1,57 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment & config (sensitive)
+/config/database.php
+/config/admin_security.php
+/config/whatsapp.php
+.env
+.env.local
+
+# Logs & cache
+*.log
+/storage/logs/
+/app/cache/
+/app/tmp/
+/var/log/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads / user generated content
+/public/uploads/
+/app/uploads/
+/app/image/
+
+# Database dumps
+*.sql
+*.sqlite
+*.db
+
+# Testing
+/phpunit.xml
+/coverage/
+/.phpunit.result.cache
+
+# Composer
+/composer.phar
+/composer.lock
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# Backup
+/backup/
+/backups/
+*.backup
