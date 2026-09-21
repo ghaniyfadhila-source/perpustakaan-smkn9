@@ -16,21 +16,33 @@ class MembersController {
     require __DIR__ . '/../views/members/index.php';
   }
 
-  public function create() {
+public function create() {
   $types = DB::select("SELECT member_type_id, member_type_name FROM mst_member_type ORDER BY member_type_name ASC");
 
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = $this->collect();
 
+    // Validate unique username
+    $existing = DB::selectOne("SELECT member_id FROM member WHERE username=? LIMIT 1", "s", [$data['username']]);
+    if ($existing) {
+      $_SESSION['flash'] = ['type'=>'danger','msg'=>'Username sudah digunakan.'];
+      require __DIR__ . '/../views/members/create.php';
+      return;
+    }
+
+    $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+
     DB::exec(
   "INSERT INTO member
-    (member_id, member_name, gender, birth_date, member_type_id, member_address, member_phone,
+    (member_id, member_name, username, password_hash, gender, birth_date, member_type_id, member_address, member_phone,
      register_date, expire_date, input_date)
-   VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), ?, CURDATE())",
-  "ssisisss",
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), ?, CURDATE())",
+  "sssssisiss",
   [
     $data['member_id'],
     $data['member_name'],
+    $data['username'],
+    $passwordHash,
     (int)$data['gender'],
     $data['birth_date'],
     (int)$data['member_type_id'],
@@ -61,23 +73,41 @@ class MembersController {
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = $this->collect(false);
 
-    DB::exec(
-  "UPDATE member
-   SET member_name=?, gender=?, birth_date=?, member_type_id=?, member_address=?, member_phone=?, expire_date=?, last_update=CURDATE()
-   WHERE member_id=?",
-  "sisissss",
-  [
-    $data['member_name'],
-    (int)$data['gender'],
-    $data['birth_date'],
-    (int)$data['member_type_id'],
-    $data['member_address'],
-    $data['member_phone'],
-    $data['expire_date'],
-    $id
-  ]
-);
-
+    // Password optional - only update if provided
+    $password = trim($_POST['password'] ?? '');
+    if ($password !== '') {
+      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+      DB::exec(
+        "UPDATE member SET member_name=?, gender=?, birth_date=?, member_type_id=?, member_address=?, member_phone=?, expire_date=?, password_hash=?, last_update=CURDATE() WHERE member_id=?",
+        "sisisssss",
+        [
+          $data['member_name'],
+          (int)$data['gender'],
+          $data['birth_date'],
+          (int)$data['member_type_id'],
+          $data['member_address'],
+          $data['member_phone'],
+          $data['expire_date'],
+          $passwordHash,
+          $id
+        ]
+      );
+    } else {
+      DB::exec(
+        "UPDATE member SET member_name=?, gender=?, birth_date=?, member_type_id=?, member_address=?, member_phone=?, expire_date=?, last_update=CURDATE() WHERE member_id=?",
+        "sisissss",
+        [
+          $data['member_name'],
+          (int)$data['gender'],
+          $data['birth_date'],
+          (int)$data['member_type_id'],
+          $data['member_address'],
+          $data['member_phone'],
+          $data['expire_date'],
+          $id
+        ]
+      );
+    }
 
     AuditService::log('staff', (string)Auth::user()['user_id'], 'members', 'update', "UPDATE_MEMBER member_id=".$id);
     $_SESSION['flash'] = ['type'=>'success','msg'=>'Anggota berhasil diupdate.'];
@@ -122,6 +152,8 @@ class MembersController {
     $data = [
       'member_id' => trim($_POST['member_id'] ?? ''),
       'member_name' => trim($_POST['member_name'] ?? ''),
+      'username' => trim($_POST['username'] ?? ''),
+      'password' => $_POST['password'] ?? '',
       'gender' => (int)($_POST['gender'] ?? 1),
       'birth_date' => trim($_POST['birth_date'] ?? null),
       'member_type_id' => (int)($_POST['member_type_id'] ?? 0),

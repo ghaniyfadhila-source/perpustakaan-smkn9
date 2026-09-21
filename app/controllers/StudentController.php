@@ -112,4 +112,59 @@ class StudentController {
 
     require __DIR__ . '/../views/student/profile/index.php';
   }
+
+  public function changePassword() {
+    $u = $_SESSION['student'] ?? null;
+    if (!$u) {
+      redirect('student/login');
+      return;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      redirect('student/profile');
+      return;
+    }
+
+    $currentPassword = $_POST['current_password'] ?? '';
+    $newPassword = $_POST['new_password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+
+    if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Semua field wajib diisi.'];
+      redirect('student/profile');
+      return;
+    }
+
+    if ($newPassword !== $confirmPassword) {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Konfirmasi password tidak cocok.'];
+      redirect('student/profile');
+      return;
+    }
+
+    if (strlen($newPassword) < 6) {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Password minimal 6 karakter.'];
+      redirect('student/profile');
+      return;
+    }
+
+    $studentId = $u['student_id'];
+    $member = DB::selectOne("SELECT password_hash FROM member WHERE member_id=? LIMIT 1", "s", [$studentId]);
+    if (!$member) {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Akun tidak ditemukan.'];
+      redirect('student/profile');
+      return;
+    }
+
+    if (!password_verify($currentPassword, $member['password_hash'])) {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Password lama salah.'];
+      redirect('student/profile');
+      return;
+    }
+
+    $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+    DB::exec("UPDATE member SET password_hash=?, last_update=CURDATE() WHERE member_id=?", "ss", [$newHash, $studentId]);
+
+    $_SESSION['flash'] = ['type'=>'success', 'msg'=>'Password berhasil diubah.'];
+    redirect('student/profile');
+  }
 }
