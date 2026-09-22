@@ -93,6 +93,13 @@ class StudentController {
       [$student_id]
     );
 
+    // Cek loan mana yang sudah punya return request PENDING
+    $pendingReturns = DB::select(
+      "SELECT loan_id FROM return_requests WHERE member_id=? AND status='PENDING'",
+      "s", [$student_id]
+    );
+    $pendingReturnLoanIds = array_column($pendingReturns, 'loan_id');
+
     require __DIR__ . '/../views/student/dashboard/index.php';
   }
 

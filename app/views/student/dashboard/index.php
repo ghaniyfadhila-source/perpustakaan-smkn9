@@ -84,19 +84,29 @@
                   </span>
                 </td>
                 <td>
-                  <?php if ($loan['due_date'] < date('Y-m-d')): ?>
+                  <?php if (in_array($loan['loan_id'], $pendingReturnLoanIds ?? [])): ?>
+                    <span class="badge bg-info text-dark">
+                      <i class="bi bi-hourglass-split me-1"></i>Menunggu
+                    </span>
+                  <?php elseif ($loan['due_date'] < date('Y-m-d')): ?>
                     <span class="badge bg-danger">Terlambat</span>
                   <?php else: ?>
                     <span class="badge bg-success">Aktif</span>
                   <?php endif; ?>
                 </td>
                 <td>
-                  <form method="POST" action="index.php?r=student/requestReturn" class="d-inline" onsubmit="return confirm('Ajukan pengembalian? Silakan kembalikan buku ke perpustakaan.')">
-                    <input type="hidden" name="loan_id" value="<?= $loan['loan_id'] ?>">
-                    <button type="submit" class="btn btn-outline-warning btn-sm">
-                      <i class="bi bi-arrow-return-left me-1"></i>Kembalikan
+                  <?php if (in_array($loan['loan_id'], $pendingReturnLoanIds ?? [])): ?>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                      <i class="bi bi-hourglass-split me-1"></i>Menunggu Dikembalikan
                     </button>
-                  </form>
+                  <?php else: ?>
+                    <form method="POST" action="index.php?r=student/requestReturn" class="d-inline" onsubmit="return confirm('Ajukan pengembalian? Silakan kembalikan buku ke perpustakaan.')">
+                      <input type="hidden" name="loan_id" value="<?= $loan['loan_id'] ?>">
+                      <button type="submit" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-arrow-return-left me-1"></i>Kembalikan
+                      </button>
+                    </form>
+                  <?php endif; ?>
                 </td>
               </tr>
               <?php endforeach; ?>
