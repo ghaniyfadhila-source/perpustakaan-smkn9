@@ -32,20 +32,22 @@ public function create() {
 
     $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
 
+    $birthDate = $data['birth_date'] !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birth_date']) ? $data['birth_date'] : null;
+
     DB::exec(
   "INSERT INTO member
     (member_id, member_name, username, password_hash, gender, birth_date, member_type_id, member_address, member_phone,
      register_date, expire_date, input_date)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), ?, CURDATE())",
-  "sssssisiss",
+  "ssssisisss",
   [
     $data['member_id'],
     $data['member_name'],
     $data['username'],
     $passwordHash,
-    (int)$data['gender'],
-    $data['birth_date'],
-    (int)$data['member_type_id'],
+    $data['gender'],
+    $birthDate,
+    $data['member_type_id'],
     $data['member_address'],
     $data['member_phone'],
     $data['expire_date'],
@@ -75,6 +77,7 @@ public function create() {
 
     // Password optional - only update if provided
     $password = trim($_POST['password'] ?? '');
+    $birthDate = $data['birth_date'] !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birth_date']) ? $data['birth_date'] : null;
     if ($password !== '') {
       $passwordHash = password_hash($password, PASSWORD_DEFAULT);
       DB::exec(
@@ -82,9 +85,9 @@ public function create() {
         "sisisssss",
         [
           $data['member_name'],
-          (int)$data['gender'],
-          $data['birth_date'],
-          (int)$data['member_type_id'],
+          $data['gender'],
+          $birthDate,
+          $data['member_type_id'],
           $data['member_address'],
           $data['member_phone'],
           $data['expire_date'],
@@ -98,9 +101,9 @@ public function create() {
         "sisissss",
         [
           $data['member_name'],
-          (int)$data['gender'],
-          $data['birth_date'],
-          (int)$data['member_type_id'],
+          $data['gender'],
+          $birthDate,
+          $data['member_type_id'],
           $data['member_address'],
           $data['member_phone'],
           $data['expire_date'],
