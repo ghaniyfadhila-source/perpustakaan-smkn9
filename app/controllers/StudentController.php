@@ -167,4 +167,36 @@ class StudentController {
     $_SESSION['flash'] = ['type'=>'success', 'msg'=>'Password berhasil diubah.'];
     redirect('student/profile');
   }
+
+  public function requestReturn() {
+    $u = $_SESSION['student'] ?? null;
+    if (!$u) { redirect('student/login'); return; }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('student/dashboard'); return; }
+
+    $loanId = (int)($_POST['loan_id'] ?? 0);
+    $studentId = $u['student_id'];
+
+    $loan = DB::selectOne("SELECT * FROM loan WHERE loan_id=? AND member_id=? AND is_lent=1 AND is_return=0 LIMIT 1", "is", [$loanId, $studentId]);
+    if (!$loan) {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Pinjaman tidak valid.'];
+      redirect('student/dashboard');
+      return;
+    }
+
+    $existing = DB::selectOne("SELECT return_request_id FROM return_requests WHERE loan_id=? AND status='PENDING' LIMIT 1", "i", [$loanId]);
+    if ($existing) {
+      $_SESSION['flash'] = ['type'=>'warning', 'msg'=>'Pengembalian untuk buku ini sedang diproses.'];
+      redirect('student/dashboard');
+      return;
+    }
+
+    DB::exec("INSERT INTO return_requests (loan_id, member_id, request_date, status) VALUES (?, ?, NOW(), 'PENDING')", "is", [$loanId, $studentId]);
+
+    $book = DB::selectOne("SELECT b.title FROM loan l JOIN item i ON i.item_code=l.item_code JOIN biblio b ON b.biblio_id=i.biblio_id WHERE l.loan_id=? LIMIT 1", "i", [$loanId]);
+    $title = $book['title'] ?? 'buku';
+
+    $_SESSION['flash'] = ['type'=>'success', 'msg'=>"Pengembalian untuk buku \"$title\" diajukan. Silakan kembalikan buku ke perpustakaan."];
+    redirect('student/dashboard');
+  }
 }

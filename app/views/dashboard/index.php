@@ -4,6 +4,7 @@ $requestSummary = $requestSummary ?? [
   'PENDING' => 0, 'APPROVED' => 0, 'REJECTED' => 0, 'CANCELLED' => 0, 'TOTAL' => 0
 ];
 $requestVerified = $requestVerified ?? false;
+$returnCount = $returnCount ?? 0;
 $showVerifyModal = isset($_GET['request_verify']);
 ?>
 
@@ -43,6 +44,14 @@ $showVerifyModal = isset($_GET['request_verify']);
               data-verified="<?= $requestVerified ? '1' : '0' ?>">
         <i class="bi bi-journal-check me-1"></i>Request Verifikasi
         <span class="badge bg-warning text-dark ms-1"><?= $requestSummary['PENDING'] ?? 0 ?></span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="returns-tab" type="button" role="tab"
+              data-target="#returns"
+              data-verified="<?= $requestVerified ? '1' : '0' ?>">
+        <i class="bi bi-arrow-return-left me-1"></i>Pengembalian
+        <span class="badge bg-info text-dark ms-1"><?= $returnCount ?></span>
       </button>
     </li>
   </ul>
@@ -277,6 +286,34 @@ $showVerifyModal = isset($_GET['request_verify']);
       </div>
     </div>
 
+    <!-- RETURNS TAB -->
+    <div class="tab-pane fade" id="returns" role="tabpanel">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0"><i class="bi bi-arrow-return-left me-2"></i>Pengembalian Buku</h5>
+          <span class="badge bg-info text-dark"><?= $returnCount ?> menunggu konfirmasi</span>
+        </div>
+        <div class="card-body">
+          <?php if (!$requestVerified): ?>
+            <div class="text-center py-5">
+              <div class="mb-3">
+                <i class="bi bi-lock-fill display-1 text-muted"></i>
+              </div>
+              <h5 class="text-muted">Area Terproteksi</h5>
+              <p class="text-muted mb-4">Masukkan password admin untuk mengakses menu pengembalian.</p>
+              <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#verifyPasswordModal">
+                <i class="bi bi-key me-1"></i> Verifikasi Password
+              </button>
+            </div>
+          <?php else: ?>
+            <div id="returnsContent">
+              <?php require __DIR__ . '/returns_tab.php'; ?>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div><!-- /.content-inner -->
 
@@ -434,32 +471,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   <?php endif; ?>
 
-  // ===== Manual Tab Switching (both tabs) =====
-  const requestsTab = document.getElementById('requests-tab');
+  // ===== Manual Tab Switching (3 tabs) =====
   const overviewTab = document.getElementById('overview-tab');
-  const requestsPane = document.getElementById('requests');
+  const requestsTab = document.getElementById('requests-tab');
+  const returnsTab = document.getElementById('returns-tab');
   const overviewPane = document.getElementById('overview');
+  const requestsPane = document.getElementById('requests');
+  const returnsPane = document.getElementById('returns');
+  const allTabs = [overviewTab, requestsTab, returnsTab].filter(Boolean);
+  const allPanes = [overviewPane, requestsPane, returnsPane].filter(Boolean);
 
-  function switchToRequests() {
-    if (!requestsTab || !overviewTab || !requestsPane || !overviewPane) return;
-    overviewTab.classList.remove('active');
-    overviewTab.setAttribute('aria-selected', 'false');
-    overviewPane.classList.remove('show', 'active');
-    requestsTab.classList.add('active');
-    requestsTab.setAttribute('aria-selected', 'true');
-    requestsPane.classList.add('show', 'active');
-    console.log('Switched to Requests tab');
+  function deactivateAll() {
+    allTabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    allPanes.forEach(p => p.classList.remove('show', 'active'));
   }
 
-  function switchToOverview() {
-    if (!requestsTab || !overviewTab || !requestsPane || !overviewPane) return;
-    requestsTab.classList.remove('active');
-    requestsTab.setAttribute('aria-selected', 'false');
-    requestsPane.classList.remove('show', 'active');
-    overviewTab.classList.add('active');
-    overviewTab.setAttribute('aria-selected', 'true');
-    overviewPane.classList.add('show', 'active');
-    console.log('Switched to Overview tab');
+  function activateTab(tab, pane) {
+    deactivateAll();
+    if (tab) tab.classList.add('active');
+    if (tab) tab.setAttribute('aria-selected', 'true');
+    if (pane) pane.classList.add('show', 'active');
+  }
+
+  function switchToOverview() { activateTab(overviewTab, overviewPane); }
+  function switchToRequests() { activateTab(requestsTab, requestsPane); }
+  function switchToReturns()  { activateTab(returnsTab, returnsPane); }
+
+  if (overviewTab) {
+    overviewTab.addEventListener('click', function(e) { e.preventDefault(); switchToOverview(); });
   }
 
   if (requestsTab) {
@@ -467,28 +506,33 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       e.stopPropagation();
       const verified = this.getAttribute('data-verified') === '1';
-      console.log('Requests tab clicked, verified:', verified);
       if (!verified) {
-        if (verifyModal) {
-          const modal = new bootstrap.Modal(verifyModal);
-          modal.show();
-        }
+        if (verifyModal) new bootstrap.Modal(verifyModal).show();
       } else {
         switchToRequests();
       }
     });
   }
 
-  if (overviewTab) {
-    overviewTab.addEventListener('click', function(e) {
+  if (returnsTab) {
+    returnsTab.addEventListener('click', function(e) {
       e.preventDefault();
-      switchToOverview();
+      e.stopPropagation();
+      const verified = this.getAttribute('data-verified') === '1';
+      if (!verified) {
+        if (verifyModal) new bootstrap.Modal(verifyModal).show();
+      } else {
+        switchToReturns();
+      }
     });
   }
 
-  // Auto-switch to requests tab if verified and hash in URL
+  // Auto-switch based on URL hash
   if (window.location.hash === '#requests' && requestsTab && requestsTab.getAttribute('data-verified') === '1') {
     switchToRequests();
+  }
+  if (window.location.hash === '#returns' && returnsTab && returnsTab.getAttribute('data-verified') === '1') {
+    switchToReturns();
   }
 
   // ===== AJAX Filter untuk Request Tab =====
@@ -540,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Pasang listener pertama kali (saat konten sudah ada dari server-side render)
   attachFilterListeners();
 
-  console.log('Tab elements:', {requestsTab, overviewTab, requestsPane, overviewPane});
+  console.log('Tab elements:', {overviewTab, requestsTab, returnsTab});
 });
 </script>
 

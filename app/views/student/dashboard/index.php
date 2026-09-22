@@ -65,6 +65,7 @@
                 <th>Tgl Pinjam</th>
                 <th>Jatuh Tempo</th>
                 <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -88,6 +89,14 @@
                   <?php else: ?>
                     <span class="badge bg-success">Aktif</span>
                   <?php endif; ?>
+                </td>
+                <td>
+                  <form method="POST" action="index.php?r=student/requestReturn" class="d-inline" onsubmit="return confirm('Ajukan pengembalian? Silakan kembalikan buku ke perpustakaan.')">
+                    <input type="hidden" name="loan_id" value="<?= $loan['loan_id'] ?>">
+                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                      <i class="bi bi-arrow-return-left me-1"></i>Kembalikan
+                    </button>
+                  </form>
                 </td>
               </tr>
               <?php endforeach; ?>

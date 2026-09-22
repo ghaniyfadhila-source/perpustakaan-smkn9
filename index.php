@@ -30,7 +30,7 @@ if (str_starts_with($route, 'student/')) {
   $method = $parts[2] ?? $subController; // default ke subController jika hanya 2 bagian
   
   // Special cases that use StudentController
-  $studentControllerMethods = ['logout', 'login', 'profile', 'dashboard'];
+  $studentControllerMethods = ['logout', 'login', 'profile', 'dashboard', 'requestReturn'];
   
   if (in_array($subController, $studentControllerMethods)) {
     $controllerClass = 'StudentController';

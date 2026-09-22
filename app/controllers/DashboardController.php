@@ -59,6 +59,9 @@ class DashboardController {
     // Request summary untuk tab
     $requestSummary = $this->getRequestSummary();
 
+    // Return count untuk tab
+    $returnCount = DB::selectOne("SELECT COUNT(*) c FROM return_requests WHERE status='PENDING'")['c'] ?? 0;
+
     // Cek apakah sudah verifikasi password untuk request
     $requestVerified = $this->isRequestVerified();
 
@@ -157,6 +160,7 @@ class DashboardController {
 
     $requestId = (int)($_POST['request_id'] ?? 0);
     $itemCode = trim($_POST['item_code'] ?? '');
+    $dueDate = trim($_POST['due_date'] ?? '');
     $u = Auth::user();
     $staffId = (int)$u['user_id'];
 
@@ -164,9 +168,10 @@ class DashboardController {
       $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Data tidak lengkap'];
     } else {
       $model = new BookRequestModel();
-      $res = $model->approve($requestId, $staffId, $itemCode);
+      $res = $model->approve($requestId, $staffId, $itemCode, $dueDate);
       if ($res['ok']) {
-        $_SESSION['flash'] = ['type'=>'success', 'msg'=>'Request disetujui dan peminjaman dibuat'];
+        $msg = 'Request disetujui dan peminjaman dibuat. Jatuh tempo: ' . $res['due_date'];
+        $_SESSION['flash'] = ['type'=>'success', 'msg'=>$msg];
       } else {
         $_SESSION['flash'] = ['type'=>'danger', 'msg'=>$res['error']];
       }
@@ -207,6 +212,70 @@ class DashboardController {
   }
 
   // ===== Helper Methods =====
+
+  public function returns() {
+    $this->checkAuth();
+    $this->requireRequestVerified();
+
+    $returnRequests = DB::select("
+      SELECT rr.*, l.item_code, l.loan_date, l.due_date,
+             m.member_name, m.username, b.title
+      FROM return_requests rr
+      JOIN loan l ON l.loan_id = rr.loan_id
+      JOIN member m ON m.member_id = rr.member_id
+      JOIN item i ON i.item_code = l.item_code
+      JOIN biblio b ON b.biblio_id = i.biblio_id
+      WHERE rr.status = 'PENDING'
+      ORDER BY rr.request_date ASC
+    ");
+
+    $returnCount = count($returnRequests);
+
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+           && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+    if ($isAjax) {
+      require __DIR__ . '/../views/dashboard/returns_tab.php';
+      exit;
+    }
+
+    $this->index();
+  }
+
+  public function confirmReturn() {
+    $this->checkAuth();
+    $this->requireRequestVerified();
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      redirect('dashboard/index');
+      return;
+    }
+
+    $returnRequestId = (int)($_POST['return_request_id'] ?? 0);
+    $staffId = (int)Auth::user()['user_id'];
+
+    $req = DB::selectOne("SELECT rr.*, l.item_code FROM return_requests rr JOIN loan l ON l.loan_id=rr.loan_id WHERE rr.return_request_id=? AND rr.status='PENDING' LIMIT 1", "i", [$returnRequestId]);
+    if (!$req) {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>'Request pengembalian tidak ditemukan atau sudah diproses.'];
+      header("Location: index.php?r=dashboard/returns");
+      exit;
+    }
+
+    $svc = new LoanService();
+    $res = $svc->returnBook($req['item_code'], $staffId);
+
+    if ($res['ok']) {
+      DB::exec("UPDATE return_requests SET status='CONFIRMED', confirmed_at=NOW(), confirmed_by=? WHERE return_request_id=?", "ii", [$staffId, $returnRequestId]);
+
+      $fineMsg = ($res['fine'] > 0) ? " Denda: Rp " . number_format($res['fine']) : " Tidak ada denda.";
+      $_SESSION['flash'] = ['type'=>'success', 'msg'=>"Pengembalian dikonfirmasi." . $fineMsg];
+    } else {
+      $_SESSION['flash'] = ['type'=>'danger', 'msg'=>$res['error']];
+    }
+
+    header("Location: index.php?r=dashboard/returns");
+    exit;
+  }
 
   private function checkAuth(): void {
     if (!Auth::check()) {

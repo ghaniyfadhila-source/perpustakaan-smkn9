@@ -74,7 +74,7 @@ class BookRequestModel {
     return DB::select($sql, $types, $params);
   }
 
-  public function approve(int $requestId, int $staffId, string $itemCode): array {
+  public function approve(int $requestId, int $staffId, string $itemCode, string $customDueDate = ''): array {
     $req = $this->find($requestId);
     if (!$req) return ['ok'=>false, 'error'=>'Request tidak ditemukan'];
     if ($req['status'] !== 'PENDING') return ['ok'=>false, 'error'=>'Request sudah diproses'];
@@ -95,18 +95,19 @@ class BookRequestModel {
     }
 
     $svc = new LoanService();
-    $res = $svc->borrow($req['member_id'], [$itemCode], $staffId);
+    $res = $svc->borrow($req['member_id'], [$itemCode], $staffId, $customDueDate);
     if (empty($res['ok'])) return ['ok'=>false, 'error'=>$res['error']];
 
     $loanId = $res['data'][0]['loan_id'] ?? 0;
+    $dueDate = $res['data'][0]['due_date'] ?? '';
 
     DB::exec("UPDATE book_requests SET status='APPROVED', approved_by=?, approved_at=NOW(), loan_id=?, item_code=? WHERE request_id=?",
              "iisi", [$staffId, $loanId, $itemCode, $requestId]);
 
     // Send WhatsApp notification
-    $this->notifyApproved($req['member_id'], $req['biblio_id'], $itemCode, $res['data'][0]['due_date'] ?? '');
+    $this->notifyApproved($req['member_id'], $req['biblio_id'], $itemCode, $dueDate);
 
-    return ['ok'=>true, 'loan_id'=>$loanId];
+    return ['ok'=>true, 'loan_id'=>$loanId, 'due_date'=>$dueDate];
   }
 
   public function reject(int $requestId, int $staffId, string $reason): array {

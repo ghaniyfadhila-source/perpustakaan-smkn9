@@ -109,8 +109,22 @@ $expireSoon   = $expireDate && !$isExpired && strtotime($expireDate) < strtotime
             <?php else: ?>
               <span class="text-muted">-</span>
             <?php endif; ?>
-          </div>
-        </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.due-shortcut').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var days = parseInt(this.dataset.days);
+    var d = new Date();
+    d.setDate(d.getDate() + days);
+    var yyyy = d.getFullYear();
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var dd = String(d.getDate()).padStart(2, '0');
+    document.getElementById('dueDate').value = yyyy + '-' + mm + '-' + dd;
+  });
+});
+</script>
       </div>
     </div>
 
@@ -206,6 +220,20 @@ $expireSoon   = $expireDate && !$isExpired && strtotime($expireDate) < strtotime
                     </option>
                   <?php endforeach; ?>
                 </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Jatuh Tempo <span class="text-danger">*</span>
+                </label>
+                <div class="d-flex gap-2 flex-wrap mb-2">
+                  <button type="button" class="btn btn-sm btn-outline-primary due-shortcut" data-days="3">3 hari</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary due-shortcut" data-days="5">5 hari</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary due-shortcut" data-days="7">7 hari</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary due-shortcut" data-days="14">14 hari</button>
+                </div>
+                <input type="date" name="due_date" id="dueDate" class="form-control" required
+                       value="<?= date('Y-m-d', strtotime('+3 days')) ?>">
+                <div class="form-text">Denda Rp 20.000/hari jika terlambat dari tanggal jatuh tempo</div>
               </div>
               <button type="submit" class="btn btn-success w-100 mb-3"
                       onclick="return confirm('Setujui request ini dan buat peminjaman untuk eksemplar yang dipilih?')">

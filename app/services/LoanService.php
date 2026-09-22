@@ -4,7 +4,7 @@ require_once __DIR__ . '/../helpers/Phone.php'; // sesuaikan path jika beda
 
 class LoanService {
 
-  public function borrow(string $memberId, array $itemCodes, int $staffId): array {
+  public function borrow(string $memberId, array $itemCodes, int $staffId, string $customDueDate = ''): array {
     $member = DB::selectOne("SELECT member_id, member_name, expire_date, member_type_id
                             FROM member WHERE member_id=? LIMIT 1", "s", [$memberId]);
     if (!$member) return ['ok'=>false, 'error'=>'Anggota tidak ditemukan'];
@@ -36,7 +36,11 @@ class LoanService {
       }
 
       $loanDate = date('Y-m-d');
-      $dueDate  = date('Y-m-d', strtotime($loanDate." +{$rule['loan_periode']} day"));
+      if ($customDueDate !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $customDueDate) && strtotime($customDueDate) > strtotime($loanDate)) {
+        $dueDate = $customDueDate;
+      } else {
+        $dueDate = date('Y-m-d', strtotime($loanDate." +{$rule['loan_periode']} day"));
+      }
 
       DB::exec("INSERT INTO loan (item_code, member_id, loan_date, due_date, loan_rules_id, is_lent, is_return, input_date, uid)
                 VALUES (?, ?, ?, ?, ?, 1, 0, NOW(), ?)",
