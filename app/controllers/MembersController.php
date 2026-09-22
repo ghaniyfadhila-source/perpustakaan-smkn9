@@ -22,6 +22,14 @@ public function create() {
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = $this->collect();
 
+    // Validate unique member_id
+    $existingId = DB::selectOne("SELECT member_id FROM member WHERE member_id=? LIMIT 1", "s", [$data['member_id']]);
+    if ($existingId) {
+      $_SESSION['flash'] = ['type'=>'danger','msg'=>'Member ID sudah digunakan.'];
+      require __DIR__ . '/../views/members/create.php';
+      return;
+    }
+
     // Validate unique username
     $existing = DB::selectOne("SELECT member_id FROM member WHERE username=? LIMIT 1", "s", [$data['username']]);
     if ($existing) {
@@ -34,7 +42,8 @@ public function create() {
 
     $birthDate = $data['birth_date'] !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birth_date']) ? $data['birth_date'] : null;
 
-    DB::exec(
+    try {
+      DB::exec(
   "INSERT INTO member
     (member_id, member_name, username, password_hash, gender, birth_date, member_type_id, member_address, member_phone,
      register_date, expire_date, input_date)
@@ -53,6 +62,11 @@ public function create() {
     $data['expire_date'],
   ]
 );
+    } catch (\Exception $e) {
+      $_SESSION['flash'] = ['type'=>'danger','msg'=>'Gagal menyimpan: ' . $e->getMessage()];
+      require __DIR__ . '/../views/members/create.php';
+      return;
+    }
 
 
     AuditService::log('staff', (string)Auth::user()['user_id'], 'members', 'create', "CREATE_MEMBER member_id=".$data['member_id']);
@@ -78,38 +92,44 @@ public function create() {
     // Password optional - only update if provided
     $password = trim($_POST['password'] ?? '');
     $birthDate = $data['birth_date'] !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birth_date']) ? $data['birth_date'] : null;
-    if ($password !== '') {
-      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-      DB::exec(
-        "UPDATE member SET member_name=?, gender=?, birth_date=?, member_type_id=?, member_address=?, member_phone=?, expire_date=?, password_hash=?, last_update=CURDATE() WHERE member_id=?",
-        "sisisssss",
-        [
-          $data['member_name'],
-          $data['gender'],
-          $birthDate,
-          $data['member_type_id'],
-          $data['member_address'],
-          $data['member_phone'],
-          $data['expire_date'],
-          $passwordHash,
-          $id
-        ]
-      );
-    } else {
-      DB::exec(
-        "UPDATE member SET member_name=?, gender=?, birth_date=?, member_type_id=?, member_address=?, member_phone=?, expire_date=?, last_update=CURDATE() WHERE member_id=?",
-        "sisissss",
-        [
-          $data['member_name'],
-          $data['gender'],
-          $birthDate,
-          $data['member_type_id'],
-          $data['member_address'],
-          $data['member_phone'],
-          $data['expire_date'],
-          $id
-        ]
-      );
+    try {
+      if ($password !== '') {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        DB::exec(
+          "UPDATE member SET member_name=?, gender=?, birth_date=?, member_type_id=?, member_address=?, member_phone=?, expire_date=?, password_hash=?, last_update=CURDATE() WHERE member_id=?",
+          "sisisssss",
+          [
+            $data['member_name'],
+            $data['gender'],
+            $birthDate,
+            $data['member_type_id'],
+            $data['member_address'],
+            $data['member_phone'],
+            $data['expire_date'],
+            $passwordHash,
+            $id
+          ]
+        );
+      } else {
+        DB::exec(
+          "UPDATE member SET member_name=?, gender=?, birth_date=?, member_type_id=?, member_address=?, member_phone=?, expire_date=?, last_update=CURDATE() WHERE member_id=?",
+          "sisissss",
+          [
+            $data['member_name'],
+            $data['gender'],
+            $birthDate,
+            $data['member_type_id'],
+            $data['member_address'],
+            $data['member_phone'],
+            $data['expire_date'],
+            $id
+          ]
+        );
+      }
+    } catch (\Exception $e) {
+      $_SESSION['flash'] = ['type'=>'danger','msg'=>'Gagal mengupdate: ' . $e->getMessage()];
+      require __DIR__ . '/../views/members/edit.php';
+      return;
     }
 
     AuditService::log('staff', (string)Auth::user()['user_id'], 'members', 'update', "UPDATE_MEMBER member_id=".$id);
