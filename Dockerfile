@@ -17,8 +17,9 @@ RUN chown -R www-data:www-data /var/www/html/storage \
                /var/www/html/storage/digital_works/covers /var/www/html/storage/digital_works/pdfs \
     && chown -R www-data:www-data /var/www/html/public/uploads /var/www/html/app/uploads
 
-WORKDIR /var/www/html
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE 80
+EXPOSE 8080
 
-CMD ["apache2-foreground"]
+CMD ["docker-entrypoint.sh"]
