@@ -106,13 +106,14 @@
     min-height: 100vh;
     display: flex;
     align-items: stretch;
+    justify-content: center;
   }
 
   /* ===========================
      LEFT PANEL
   =========================== */
   .left-panel {
-    flex: 1;
+    flex: 0 1 700px;
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -154,7 +155,7 @@
 
   .brand-pill-text strong {
     display: block;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--ink);
     line-height: 1.2;
@@ -166,7 +167,7 @@
   }
 
   .left-title {
-    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-size: clamp(2.5rem, 4.5vw, 3.8rem);
     font-weight: 800;
     letter-spacing: -0.035em;
     line-height: 1.1;
@@ -182,10 +183,10 @@
   }
 
   .left-sub {
-    font-size: 1rem;
+    font-size: 1.15rem;
     color: var(--secondary);
     line-height: 1.65;
-    max-width: 480px;
+    max-width: 520px;
     margin-bottom: 32px;
   }
 
@@ -207,7 +208,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.85);
     border-radius: 12px;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 500;
     color: var(--secondary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -260,15 +261,14 @@
 
   @media (min-width: 1024px) {
     .right-panel {
-      width: 440px;
-      min-width: 440px;
-      padding: 48px 32px;
+      flex: 0 1 540px;
+      padding: 48px 40px;
     }
   }
 
   .login-card {
     width: 100%;
-    max-width: 400px;
+    max-width: 460px;
     background: var(--card-bg);
     backdrop-filter: blur(32px) saturate(200%);
     -webkit-backdrop-filter: blur(32px) saturate(200%);
@@ -575,7 +575,7 @@
 
   <!-- RIGHT -->
   <div class="right-panel">
-    <div class="w-100" style="max-width: 400px;">
+    <div class="w-100" style="max-width: 460px;">
 
       <div class="mobile-brand">
         <img src="<?= BASE_URL ?>/app/image/SMKN9.png" alt="Logo">
