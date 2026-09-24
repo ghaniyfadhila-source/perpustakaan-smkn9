@@ -1,110 +1,184 @@
 <?php
 $current = $_GET['r'] ?? 'dashboard/index';
 function isActive($r, $current) { return str_starts_with($current, $r) ? 'active' : ''; }
+
+$navItems = [
+  ['r' => 'dashboard', 'icon' => 'bi-speedometer2', 'label' => 'Dashboard', 'href' => 'dashboard/index'],
+  ['r' => 'books',     'icon' => 'bi-journal-bookmark', 'label' => 'Katalog Buku', 'href' => 'books/index'],
+  ['r' => 'loans/borrow', 'icon' => 'bi-box-arrow-in-right', 'label' => 'Peminjaman', 'href' => 'loans/borrow'],
+  ['r' => 'loans/returnBook', 'icon' => 'bi-box-arrow-left', 'label' => 'Pengembalian', 'href' => 'loans/returnBook'],
+  ['r' => 'members',   'icon' => 'bi-people', 'label' => 'Anggota', 'href' => 'members/index'],
+  ['r' => 'stock',     'icon' => 'bi-upc-scan', 'label' => 'Stock Scan', 'href' => 'stock/scan'],
+  ['r' => 'master',    'icon' => 'bi-database', 'label' => 'Master Data', 'href' => 'master/index'],
+  ['r' => 'digital_works', 'icon' => 'bi-journal-richtext', 'label' => 'Karya Guru dan Murid', 'href' => 'digital_works/index'],
+  ['r' => 'reports',   'icon' => 'bi-graph-up-arrow', 'label' => 'Laporan', 'href' => 'reports/index'],
+  ['r' => 'wa/schedule', 'icon' => 'bi-calendar2-week', 'label' => 'WA Jadwal', 'href' => 'wa/schedule'],
+  ['r' => 'wa/blast',  'icon' => 'bi-megaphone', 'label' => 'WA Blast', 'href' => 'wa/blast'],
+];
+
+$adminItems = [
+  ['r' => 'users',  'icon' => 'bi-person-gear', 'label' => 'Manajemen User', 'href' => 'users/index'],
+  ['r' => 'system', 'icon' => 'bi-cash-coin',   'label' => 'Atur Denda',     'href' => 'system/fineRules'],
+  ['r' => 'logs',   'icon' => 'bi-journal-code', 'label' => 'System Log',    'href' => 'logs/index'],
+];
 ?>
-<div class="d-flex">
 
-  <!-- Sidebar desktop -->
-  <aside class="sidebar d-none d-lg-block p-3">
-    <div class="mb-3 small text-muted">MENU</div>
+<style>
+  /* =============================================
+     SIDEBAR
+  ============================================= */
+  .app-sidebar {
+    width: var(--sidebar-width);
+    min-height: calc(100vh - var(--navbar-height));
+    background: var(--bg-sidebar);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-right: 1px solid var(--border);
+    padding: 1.25rem 0.875rem;
+    flex-shrink: 0;
+    position: sticky;
+    top: var(--navbar-height);
+    height: calc(100vh - var(--navbar-height));
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-    <div class="nav flex-column gap-1">
-      <a class="nav-link <?= isActive('dashboard', $current) ?>" href="index.php?r=dashboard/index">
-        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+  .sidebar-section-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    padding: 0 0.75rem;
+    margin: 1rem 0 0.4rem;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .sidebar-link:hover {
+    background: rgba(99,102,241,0.06);
+    color: var(--text-primary);
+  }
+
+  .sidebar-link.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .sidebar-link i {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.75rem 0;
+  }
+
+  /* Offcanvas for mobile */
+  .offcanvas {
+    width: 280px !important;
+    background: rgba(255,255,255,0.96) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-right: 1px solid var(--border) !important;
+  }
+
+  .offcanvas-header {
+    border-bottom: 1px solid var(--border) !important;
+    padding: 1rem 1.25rem !important;
+  }
+
+  .offcanvas-body {
+    padding: 1rem 0.875rem !important;
+  }
+</style>
+
+<!-- ===== SIDEBAR DESKTOP ===== -->
+<aside class="app-sidebar d-none d-lg-flex flex-column">
+  <div class="sidebar-section-label">Menu Utama</div>
+
+  <?php foreach ($navItems as $item): ?>
+    <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
+       href="index.php?r=<?= $item['href'] ?>">
+      <i class="bi <?= $item['icon'] ?>"></i>
+      <?= $item['label'] ?>
+    </a>
+  <?php endforeach; ?>
+
+  <?php if (ACL::isAdmin()): ?>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Admin</div>
+    <?php foreach ($adminItems as $item): ?>
+      <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
+         href="index.php?r=<?= $item['href'] ?>">
+        <i class="bi <?= $item['icon'] ?>"></i>
+        <?= $item['label'] ?>
       </a>
+    <?php endforeach; ?>
+  <?php endif; ?>
+</aside>
 
-      <a class="nav-link <?= isActive('books', $current) ?>" href="index.php?r=books/index">
-        <i class="bi bi-journal-text me-2"></i>Katalog Buku
-      </a>
-
-      <a class="nav-link <?= isActive('loans/borrow', $current) ?>" href="index.php?r=loans/borrow">
-        <i class="bi bi-box-arrow-in-right me-2"></i>Peminjaman
-      </a>
-
-      <a class="nav-link <?= isActive('loans/returnBook', $current) ?>" href="index.php?r=loans/returnBook">
-        <i class="bi bi-box-arrow-left me-2"></i>Pengembalian
-      </a>
-
-      <a class="nav-link <?= isActive('members', $current) ?>" href="index.php?r=members/index">
-        <i class="bi bi-people me-2"></i>Anggota
-      </a>
-
-      <a class="nav-link <?= isActive('stock', $current) ?>" href="index.php?r=stock/scan">
-        <i class="bi bi-upc-scan me-2"></i>Stock Scan
-      </a>
-
-      <a class="nav-link <?= isActive('master', $current) ?>" href="index.php?r=master/index">
-        <i class="bi bi-database me-2"></i>Master Data
-      </a>
-
-      <a class="nav-link <?= isActive('reports', $current) ?>" href="index.php?r=reports/index">
-        <i class="bi bi-graph-up-arrow me-2"></i>Laporan
-      </a>
-
-      <a class="nav-link <?= isActive('wa/schedule', $current) ?>" href="index.php?r=wa/schedule">
-  <i class="bi bi-calendar2-week me-2"></i>WA Jadwal Besok
-</a>
-
-<a class="nav-link <?= isActive('wa/blast', $current) ?>" href="index.php?r=wa/blast">
-  <i class="bi bi-megaphone me-2"></i>WA Kirim Sekarang
-</a>
-
-      <?php if (ACL::isAdmin()): ?>
-  <div class="text-uppercase text-muted small mt-4 mb-2 px-3">Admin</div>
-
-  <ul class="nav nav-pills flex-column mb-2">
-    <li class="nav-item">
-      <a class="nav-link <?= isActive('users', $current) ?>" href="index.php?r=users/index">
-        <i class="bi bi-person-gear me-2"></i>Manajemen User
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link <?= isActive('system', $current) ?>" href="index.php?r=system/fineRules">
-        <i class="bi bi-cash-coin me-2"></i>Atur Denda
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link <?= isActive('logs', $current) ?>" href="index.php?r=logs/index">
-        <i class="bi bi-journal-text me-2"></i>System Log
-      </a>
-    </li>
-  </ul>
-<?php endif; ?>
-
-    </div>
-  </aside>
-
-  <!-- Sidebar mobile: offcanvas -->
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title"><i class="bi bi-book-half me-2"></i><?= APP_NAME ?></h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-      <div class="nav flex-column gap-1">
-        <a class="nav-link <?= isActive('dashboard', $current) ?>" href="index.php?r=dashboard/index"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-        <a class="nav-link <?= isActive('books', $current) ?>" href="index.php?r=books/index"><i class="bi bi-journal-text me-2"></i>Katalog Buku</a>
-        <a class="nav-link <?= isActive('loans/borrow', $current) ?>" href="index.php?r=loans/borrow"><i class="bi bi-box-arrow-in-right me-2"></i>Peminjaman</a>
-        <a class="nav-link <?= isActive('loans/returnBook', $current) ?>" href="index.php?r=loans/returnBook"><i class="bi bi-box-arrow-left me-2"></i>Pengembalian</a>
-        <a class="nav-link <?= isActive('members', $current) ?>" href="index.php?r=members/index"><i class="bi bi-people me-2"></i>Anggota</a>
-        <a class="nav-link <?= isActive('stock', $current) ?>" href="index.php?r=stock/scan"><i class="bi bi-upc-scan me-2"></i>Stock Scan</a>
-        <a class="nav-link <?= isActive('master', $current) ?>" href="index.php?r=master/index"><i class="bi bi-database me-2"></i>Master Data</a>
-        <a class="nav-link <?= isActive('reports', $current) ?>" href="index.php?r=reports/index"><i class="bi bi-graph-up-arrow me-2"></i>Laporan</a>
-        <a class="nav-link <?= isActive('wa/schedule', $current) ?>" href="index.php?r=wa/schedule"><i class="bi bi-calendar2-week me-2"></i>WA Jadwal Besok</a>
-        <a class="nav-link <?= isActive('wa/blast', $current) ?>" href="index.php?r=wa/blast"><i class="bi bi-megaphone me-2"></i>WA Kirim Sekarang</a>
-        
-        <?php if (ACL::isAdmin()): ?>
-          <hr>
-          <div class="text-uppercase text-muted small px-3 mb-2">Admin</div>
-          <a class="nav-link <?= isActive('users', $current) ?>" href="index.php?r=users/index"><i class="bi bi-person-gear me-2"></i>Manajemen User</a>
-          <a class="nav-link <?= isActive('system', $current) ?>" href="index.php?r=system/fineRules"><i class="bi bi-cash-coin me-2"></i>Atur Denda</a>
-          <a class="nav-link <?= isActive('logs', $current) ?>" href="index.php?r=logs/index"><i class="bi bi-journal-text me-2"></i>System Log</a>
-        <?php endif; ?>
-      </div>
-    </div>
+<!-- ===== OFFCANVAS MOBILE ===== -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title fw-bold" style="font-size: 0.95rem;">
+      <i class="bi bi-book-half me-2" style="color: var(--accent);"></i><?= APP_NAME ?>
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
   </div>
+  <div class="offcanvas-body">
+    <div class="sidebar-section-label" style="padding: 0 0.25rem; margin-top: 0;">Menu Utama</div>
+    <?php foreach ($navItems as $item): ?>
+      <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
+         href="index.php?r=<?= $item['href'] ?>">
+        <i class="bi <?= $item['icon'] ?>"></i>
+        <?= $item['label'] ?>
+      </a>
+    <?php endforeach; ?>
 
-  <!-- Content -->
-  <main class="content">
+    <?php if (ACL::isAdmin()): ?>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label" style="padding: 0 0.25rem;">Admin</div>
+      <?php foreach ($adminItems as $item): ?>
+        <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
+           href="index.php?r=<?= $item['href'] ?>">
+          <i class="bi <?= $item['icon'] ?>"></i>
+          <?= $item['label'] ?>
+        </a>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT AREA ===== -->
+<main class="flex-grow-1" style="min-width: 0; padding: 1.5rem;">

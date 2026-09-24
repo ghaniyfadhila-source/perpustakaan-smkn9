@@ -1,44 +1,49 @@
 <?php
 $current = $_GET['r'] ?? 'student/dashboard/index';
-function isActive($r, $current) { return str_starts_with($current, $r) ? 'active' : ''; }
+if (!function_exists('isActive')) {
+  function isActive($r, $current) { return str_starts_with($current, $r) ? 'active' : ''; }
+}
+
+$navItems = [
+  ['r' => 'student/dashboard', 'icon' => 'bi-speedometer2',  'label' => 'Dashboard',          'href' => 'student/dashboard'],
+  ['r' => 'student/requests',  'icon' => 'bi-journal-plus',  'label' => 'Request Peminjaman',  'href' => 'student/requests/index'],
+  ['r' => 'student/books',       'icon' => 'bi-book',          'label' => 'Katalog Buku',        'href' => 'student/books/index'],
+  ['r' => 'student/digital',     'icon' => 'bi-journal-richtext', 'label' => 'Karya Guru dan Siswa', 'href' => 'student/digital/index'],
+  ['r' => 'student/profile',     'icon' => 'bi-person-circle', 'label' => 'Profil Saya',         'href' => 'student/profile'],
+];
 ?>
-<div class="d-flex flex-1" style="min-height: 0; align-items: stretch;">
 
-  <aside class="sidebar d-none d-lg-block p-3">
-    <div class="mb-3 small text-muted">MENU SISWA</div>
+<!-- SIDEBAR DESKTOP -->
+<aside class="app-sidebar d-none d-lg-flex flex-column">
+  <div class="sidebar-section-label" style="margin-top: 0;">Menu Siswa</div>
 
-    <div class="nav flex-column gap-1">
-      <a class="nav-link <?= isActive('student/dashboard', $current) ?>" href="index.php?r=student/dashboard">
-        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-      </a>
+  <?php foreach ($navItems as $item): ?>
+    <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
+       href="index.php?r=<?= $item['href'] ?>">
+      <i class="bi <?= $item['icon'] ?>"></i>
+      <?= $item['label'] ?>
+    </a>
+  <?php endforeach; ?>
+</aside>
 
-      <a class="nav-link <?= isActive('student/requests', $current) ?>" href="index.php?r=student/requests/index">
-        <i class="bi bi-journal-plus me-2"></i>Request Peminjaman
-      </a>
-
-      <a class="nav-link <?= isActive('student/books', $current) ?>" href="index.php?r=student/books/index">
-        <i class="bi bi-book me-2"></i>Katalog Buku
-      </a>
-
-      <a class="nav-link <?= isActive('student/profile', $current) ?>" href="index.php?r=student/profile">
-        <i class="bi bi-person me-2"></i>Profil Saya
-      </a>
-    </div>
-  </aside>
-
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title"><i class="bi bi-book-half me-2"></i><?= APP_NAME ?? 'Perpustakaan SMKN 9 Semarang' ?></h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-      <div class="nav flex-column gap-1">
-        <a class="nav-link <?= isActive('student/dashboard', $current) ?>" href="index.php?r=student/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-        <a class="nav-link <?= isActive('student/requests', $current) ?>" href="index.php?r=student/requests/index"><i class="bi bi-journal-plus me-2"></i>Request Peminjaman</a>
-        <a class="nav-link <?= isActive('student/books', $current) ?>" href="index.php?r=student/books/index"><i class="bi bi-book me-2"></i>Katalog Buku</a>
-        <a class="nav-link <?= isActive('student/profile', $current) ?>" href="index.php?r=student/profile"><i class="bi bi-person me-2"></i>Profil Saya</a>
-      </div>
-    </div>
+<!-- OFFCANVAS MOBILE -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title fw-bold" style="font-size: 0.95rem;">
+      <i class="bi bi-book-half me-2" style="color: var(--accent);"></i>Menu Siswa
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
   </div>
+  <div class="offcanvas-body">
+    <?php foreach ($navItems as $item): ?>
+      <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
+         href="index.php?r=<?= $item['href'] ?>">
+        <i class="bi <?= $item['icon'] ?>"></i>
+        <?= $item['label'] ?>
+      </a>
+    <?php endforeach; ?>
+  </div>
+</div>
 
-  <main class="content flex-grow-1">
+<!-- MAIN CONTENT -->
+<main class="flex-grow-1" style="min-width: 0; padding: 1.5rem;">

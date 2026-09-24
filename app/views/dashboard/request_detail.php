@@ -1,4 +1,7 @@
 <?php
+require __DIR__ . '/../layouts/header.php';
+require __DIR__ . '/../layouts/sidebar.php';
+
 $status = $request['status'];
 
 $statusInfo = match($status) {
@@ -511,3 +514,5 @@ function submitReject() {
   }
 }
 </script>
+
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

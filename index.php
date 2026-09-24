@@ -51,8 +51,11 @@ if (!method_exists($c, $method)) die("Method tidak ada: $method");
 // proteksi login (admin DAN siswa)
 $isLoggedIn = Auth::check() || isset($_SESSION['student']);
 $controllerLower = strtolower($controller);
-if (!in_array($controllerLower, ['login', 'auth']) && !$isLoggedIn) {
-  redirect('login/index');
+$whitelist = ['login', 'auth'];
+$isLoginRoute = in_array($controllerLower, $whitelist) || str_starts_with($route, 'student/login');
+if (!$isLoginRoute && !$isLoggedIn) {
+  $redirectTo = str_starts_with($route, 'student/') ? 'student/login' : 'login/index';
+  redirect($redirectTo);
 }
 
 // dispatch dengan parameter untuk method tertentu

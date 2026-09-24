@@ -7,9 +7,15 @@ class DB {
     // ✅ FIX: ambil config database yang benar
     $cfg = require __DIR__ . '/../config/database.php';
 
-    $conn = new mysqli($cfg['host'], $cfg['user'], $cfg['pass'], $cfg['name']);
-    if ($conn->connect_error) die("DB Error: " . $conn->connect_error);
-    $conn->set_charset('utf8mb4');
+    try {
+      $conn = new mysqli($cfg['host'], $cfg['user'], $cfg['pass'], $cfg['name'], $cfg['port'] ?? 3306);
+      if ($conn->connect_error) {
+        die("DB Error: " . $conn->connect_error);
+      }
+      $conn->set_charset('utf8mb4');
+    } catch (Exception $e) {
+      die("DB Connection Failed: " . $e->getMessage());
+    }
     return $conn;
   }
 

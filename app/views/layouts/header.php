@@ -4,99 +4,496 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= APP_NAME ?></title>
+  <title><?= APP_NAME ?> — Admin</title>
 
-  <!-- Bootstrap 5 CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    body { background: #f6f7fb; }
+    /* =============================================
+       GLOBAL TOKENS & RESET
+    ============================================= */
+    :root {
+      --white: #ffffff;
+      --bg-page: #f0f4f8;
+      --bg-sidebar: rgba(255, 255, 255, 0.75);
+      --bg-navbar: rgba(255, 255, 255, 0.85);
+      --glass-blur: blur(24px) saturate(180%);
 
-    .sidebar {
-      width: 260px;
+      --accent: #6366f1;
+      --accent-soft: rgba(99, 102, 241, 0.08);
+      --accent-border: rgba(99, 102, 241, 0.22);
+      --accent-hover: #4f46e5;
+
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+
+      --border: rgba(0, 0, 0, 0.06);
+      --border-strong: rgba(0, 0, 0, 0.1);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-xl: 28px;
+
+      --sidebar-width: 256px;
+      --navbar-height: 68px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
       min-height: 100vh;
-      background: #fff;
-      border-right: 1px solid rgba(0,0,0,.08);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .sidebar .nav-link { color: #333; border-radius: .6rem; }
-    .sidebar .nav-link:hover { background: #f1f3f5; }
-    .sidebar .nav-link.active { background: #0d6efd; color: #fff; }
-
-    .content { padding: 1.25rem; width: 100%; }
-
-    /* ===== NAVBAR MODERN ===== */
-    .navbar-modern{
-      height:70px;
-      background:white;
-      border-bottom:1px solid #e5e7eb;
-      box-shadow:0 4px 15px rgba(0,0,0,.05);
+    /* Ambient background blobs */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 700px 500px at 0% 0%, rgba(99,102,241,.07), transparent 55%),
+        radial-gradient(ellipse 600px 400px at 100% 100%, rgba(6,182,212,.06), transparent 55%),
+        radial-gradient(ellipse 500px 350px at 55% 40%, rgba(168,85,247,.04), transparent 60%);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .brand-box{
-      width:42px;
-      height:42px;
-      border-radius:12px;
-      background:linear-gradient(135deg,#6366f1,#06b6d4);
-      color:white;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:20px;
+    /* =============================================
+       NAVBAR
+    ============================================= */
+    .app-navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--navbar-height);
+      background: var(--bg-navbar);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      gap: 1rem;
+      z-index: 1000;
     }
 
+    .navbar-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .navbar-logo {
+      height: 38px;
+      width: 38px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .navbar-brand-text strong {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .navbar-brand-text small {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+
+    .navbar-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border-strong);
+      flex-shrink: 0;
+    }
+
+    .navbar-mobile-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.7);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .navbar-mobile-toggle:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    @media (max-width: 991.98px) {
+      .navbar-mobile-toggle { display: flex; }
+    }
+
+    .navbar-spacer { flex: 1; }
+
+    .navbar-user-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .navbar-user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .navbar-user-chip .avatar-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .btn-logout {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.07);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      text-decoration: none;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-logout:hover {
+      background: #ef4444;
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    /* =============================================
+       LAYOUT WRAPPER
+    ============================================= */
+    .app-layout {
+      display: flex;
+      padding-top: var(--navbar-height);
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =============================================
+       GLOBAL COMPONENT OVERRIDES
+    ============================================= */
+
+    /* Cards */
+    .card {
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-md) !important;
+      background: rgba(255,255,255,0.8) !important;
+      backdrop-filter: blur(16px) saturate(160%);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      box-shadow: var(--shadow-sm) !important;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md) !important;
+    }
+
+    .card-header {
+      background: rgba(255,255,255,0.5) !important;
+      border-bottom: 1px solid var(--border) !important;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+      padding: 1rem 1.25rem !important;
+    }
+
+    .card-body {
+      padding: 1.25rem !important;
+    }
+
+    /* Tables */
+    .table {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+    }
+
+    .table th {
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-strong) !important;
+      padding: 0.75rem 1rem !important;
+      background: transparent !important;
+      white-space: nowrap;
+    }
+
+    .table td {
+      padding: 0.75rem 1rem !important;
+      border-bottom: 1px solid var(--border) !important;
+      vertical-align: middle;
+    }
+
+    .table tbody tr:hover td {
+      background: rgba(99,102,241,.03) !important;
+    }
+
+    .table-striped > tbody > tr:nth-of-type(odd) > td {
+      background: transparent !important;
+    }
+
+    /* Buttons */
+    .btn {
+      font-weight: 500;
+      font-size: 0.85rem;
+      border-radius: var(--radius-sm) !important;
+      transition: var(--transition);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover) !important;
+      border-color: var(--accent-hover) !important;
+      box-shadow: 0 4px 14px rgba(99,102,241,0.35) !important;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline-primary {
+      color: var(--accent) !important;
+      border-color: var(--accent-border) !important;
+      background: var(--accent-soft) !important;
+    }
+
+    .btn-outline-primary:hover {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      color: white !important;
+    }
+
+    .btn-sm {
+      padding: 5px 12px !important;
+      font-size: 0.8rem !important;
+    }
+
+    /* Forms */
+    .form-control, .form-select {
+      border: 1px solid var(--border-strong) !important;
+      border-radius: var(--radius-sm) !important;
+      background: rgba(255,255,255,0.8) !important;
+      color: var(--text-primary) !important;
+      font-size: 0.9rem;
+      padding: 0.55rem 0.85rem !important;
+      transition: var(--transition);
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12) !important;
+      background: white !important;
+      outline: none !important;
+    }
+
+    .form-label {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    /* Badges */
+    .badge {
+      font-weight: 500;
+      font-size: 0.73rem;
+      padding: 4px 9px;
+      border-radius: 6px;
+      letter-spacing: 0.01em;
+    }
+
+    /* Alerts */
+    .alert {
+      border-radius: var(--radius-md) !important;
+      border: 1px solid transparent;
+      font-size: 0.88rem;
+    }
+
+    /* Nav tabs */
+    .nav-tabs {
+      border-bottom: 1px solid var(--border-strong) !important;
+      gap: 2px;
+    }
+
+    .nav-tabs .nav-link {
+      border: none !important;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary) !important;
+      padding: 9px 18px !important;
+      transition: var(--transition);
+    }
+
+    .nav-tabs .nav-link:hover {
+      color: var(--text-primary) !important;
+      background: rgba(99,102,241,0.05) !important;
+    }
+
+    .nav-tabs .nav-link.active {
+      color: var(--accent) !important;
+      background: rgba(99,102,241,0.08) !important;
+      border-bottom: 2px solid var(--accent) !important;
+      font-weight: 600;
+    }
+
+    /* Input group */
+    .input-group-text {
+      background: rgba(255,255,255,0.8) !important;
+      border: 1px solid var(--border-strong) !important;
+      color: var(--text-secondary) !important;
+      font-size: 0.85rem;
+      border-radius: var(--radius-sm) !important;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 9px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+
+    /* Content wrapper */
+    .content-inner {
+      flex: 1;
+      min-width: 0;
+      padding: 1.5rem;
+    }
+
+    /* Page header utility */
+    .page-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .page-header h4, .page-header h5 {
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .page-header .text-muted {
+      font-size: 0.83rem;
+      margin-top: 2px;
+    }
+
+    /* Modals */
+    .modal-content {
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-lg) !important;
+      background: rgba(255,255,255,0.92) !important;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow-lg) !important;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid var(--border) !important;
+      padding: 1.25rem 1.5rem !important;
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--border) !important;
+      padding: 1rem 1.5rem !important;
+    }
+
+    .modal-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 991.98px) {
+      .content-inner { padding: 1rem; }
+    }
   </style>
 </head>
 <body>
 
-<!-- ===== NAVBAR UPDATED ===== -->
-<nav class="navbar navbar-modern px-2 px-md-4">
-
-  <!-- LEFT -->
-  <div class="d-flex align-items-center gap-3">
-
-    <!-- Mobile toggle -->
-    <button class="btn btn-light d-lg-none"
-            type="button"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#offcanvasSidebar">
-      <i class="bi bi-list fs-5"></i>
-    </button>
-
-    <!-- Brand icon -->
-    <div class="text-center py-2 border-bottom">
-    <img src="<?= BASE_URL ?>/app/image/SMKN9.png" class="logo" alt="Logo Sekolah"
-       alt="Logo"
-       class="img-fluid"
-       style="max-height: 50px;">
-</div>
-
-    <!-- Brand text -->
-    <div>
-      <div class="fw-bold text-dark" style="line-height:1;">
-        <?= APP_NAME ?>
-      </div>
-      <small class="text-muted">Library Management System</small>
+<!-- ===== NAVBAR ===== -->
+<nav class="app-navbar">
+  <a class="navbar-brand-wrap" href="index.php?r=dashboard/index">
+    <img src="<?= BASE_URL ?>/app/image/SMKN9.png" class="navbar-logo" alt="Logo SMKN9">
+    <div class="navbar-brand-text">
+      <strong><?= APP_NAME ?></strong>
+      <small>Library Management System</small>
     </div>
+  </a>
 
-  </div>
+  <div class="navbar-divider d-none d-lg-block"></div>
 
-  <!-- RIGHT -->
-  <div class="ms-auto d-flex align-items-center gap-3">
+  <button class="navbar-mobile-toggle d-lg-none"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvasSidebar"
+          aria-label="Buka menu">
+    <i class="bi bi-list fs-5"></i>
+  </button>
 
-    <div class="d-flex align-items-center gap-2 text-muted small">
-      <i class="bi bi-person-circle fs-5"></i>
-      <span class="fw-semibold d-none d-sm-inline"><?= htmlspecialchars($user['realname'] ?? '') ?></span>
+  <div class="navbar-spacer"></div>
+
+  <div class="navbar-user-area">
+    <div class="navbar-user-chip d-none d-sm-flex">
+      <div class="avatar-dot"><?= strtoupper(substr($user['realname'] ?? 'A', 0, 1)) ?></div>
+      <span><?= htmlspecialchars($user['realname'] ?? '') ?></span>
     </div>
-
-    <a class="btn btn-outline-danger btn-sm rounded-pill px-3"
-       href="index.php?r=auth/logout">
-      <i class="bi bi-box-arrow-right me-1"></i> Logout
+    <a class="btn-logout" href="index.php?r=auth/logout">
+      <i class="bi bi-box-arrow-right"></i>
+      <span class="d-none d-sm-inline">Logout</span>
     </a>
-
   </div>
-
 </nav>
+
+<!-- ===== MAIN LAYOUT ===== -->
+<div class="app-layout">

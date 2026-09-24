@@ -9,7 +9,7 @@ $password_baru = 'admin123';
 
 $hash_baru = password_hash($password_baru, PASSWORD_DEFAULT);
 
-DB::execute("UPDATE user SET passwd = ? WHERE username = ?", "ss", [$hash_baru, $username]);
+DB::exec("UPDATE user SET passwd = ? WHERE username = ?", "ss", [$hash_baru, $username]);
 
 echo "Sukses! Password untuk user '$username' berhasil diubah menjadi: $password_baru";
 ?>

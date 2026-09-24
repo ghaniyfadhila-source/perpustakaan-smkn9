@@ -8,6 +8,7 @@
 /config/whatsapp.php
 .env
 .env.local
+.env.production
 
 # Logs & cache
 *.log
