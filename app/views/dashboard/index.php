@@ -82,8 +82,6 @@ $returnCount = $returnCount ?? 0;
         <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
           <div><div class="fw-semibold">Quick Actions</div><div class="text-muted small">Akses cepat untuk petugas</div></div>
           <div class="d-flex gap-2 flex-wrap">
-            <a class="btn btn-outline-primary btn-sm" href="index.php?r=loans/borrow"><i class="bi bi-upc-scan me-1"></i>Pinjam</a>
-            <a class="btn btn-outline-secondary btn-sm" href="index.php?r=loans/returnBook"><i class="bi bi-arrow-return-left me-1"></i>Kembali</a>
             <a class="btn btn-outline-dark btn-sm" href="index.php?r=books/index"><i class="bi bi-search me-1"></i>Cari Buku</a>
           </div>
         </div>

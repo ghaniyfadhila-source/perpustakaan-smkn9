@@ -9,6 +9,7 @@ $navItems = [
   ['r' => 'student/requests',  'icon' => 'bi-journal-plus',  'label' => 'Request Peminjaman',  'href' => 'student/requests/index'],
   ['r' => 'student/books',       'icon' => 'bi-book',          'label' => 'Katalog Buku',        'href' => 'student/books/index'],
   ['r' => 'student/digital',     'icon' => 'bi-journal-richtext', 'label' => 'Karya Guru dan Siswa', 'href' => 'student/digital/index'],
+  ['r' => 'baca_online',         'icon' => 'bi-book-half', 'label' => 'Baca Online', 'href' => 'https://script.google.com/macros/s/AKfycbwrMuLlP_CrhJo0VzsbvWozntpYWbS6lISNQD1WcvZl055pcR5C-QjT_23xld_FRDVZxQ/exec', 'external' => true],
   ['r' => 'student/profile',     'icon' => 'bi-person-circle', 'label' => 'Profil Saya',         'href' => 'student/profile'],
 ];
 ?>
@@ -19,7 +20,8 @@ $navItems = [
 
   <?php foreach ($navItems as $item): ?>
     <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
-       href="index.php?r=<?= $item['href'] ?>">
+       href="<?= isset($item['external']) && $item['external'] ? htmlspecialchars($item['href']) : 'index.php?r=' . $item['href'] ?>"
+       <?= isset($item['external']) && $item['external'] ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
       <i class="bi <?= $item['icon'] ?>"></i>
       <?= $item['label'] ?>
     </a>
@@ -37,7 +39,8 @@ $navItems = [
   <div class="offcanvas-body">
     <?php foreach ($navItems as $item): ?>
       <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
-         href="index.php?r=<?= $item['href'] ?>">
+         href="<?= isset($item['external']) && $item['external'] ? htmlspecialchars($item['href']) : 'index.php?r=' . $item['href'] ?>"
+         <?= isset($item['external']) && $item['external'] ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
         <i class="bi <?= $item['icon'] ?>"></i>
         <?= $item['label'] ?>
       </a>

@@ -5,12 +5,11 @@ function isActive($r, $current) { return str_starts_with($current, $r) ? 'active
 $navItems = [
   ['r' => 'dashboard', 'icon' => 'bi-speedometer2', 'label' => 'Dashboard', 'href' => 'dashboard/index'],
   ['r' => 'books',     'icon' => 'bi-journal-bookmark', 'label' => 'Katalog Buku', 'href' => 'books/index'],
-  ['r' => 'loans/borrow', 'icon' => 'bi-box-arrow-in-right', 'label' => 'Peminjaman', 'href' => 'loans/borrow'],
-  ['r' => 'loans/returnBook', 'icon' => 'bi-box-arrow-left', 'label' => 'Pengembalian', 'href' => 'loans/returnBook'],
   ['r' => 'members',   'icon' => 'bi-people', 'label' => 'Anggota', 'href' => 'members/index'],
   ['r' => 'stock',     'icon' => 'bi-upc-scan', 'label' => 'Stock Scan', 'href' => 'stock/scan'],
   ['r' => 'master',    'icon' => 'bi-database', 'label' => 'Master Data', 'href' => 'master/index'],
   ['r' => 'digital_works', 'icon' => 'bi-journal-richtext', 'label' => 'Karya Guru dan Murid', 'href' => 'digital_works/index'],
+  ['r' => 'baca_online', 'icon' => 'bi-book-half', 'label' => 'Baca Online', 'href' => 'https://script.google.com/macros/s/AKfycbwrMuLlP_CrhJo0VzsbvWozntpYWbS6lISNQD1WcvZl055pcR5C-QjT_23xld_FRDVZxQ/exec', 'external' => true],
   ['r' => 'reports',   'icon' => 'bi-graph-up-arrow', 'label' => 'Laporan', 'href' => 'reports/index'],
   ['r' => 'wa/schedule', 'icon' => 'bi-calendar2-week', 'label' => 'WA Jadwal', 'href' => 'wa/schedule'],
   ['r' => 'wa/blast',  'icon' => 'bi-megaphone', 'label' => 'WA Blast', 'href' => 'wa/blast'],
@@ -129,7 +128,8 @@ $adminItems = [
 
   <?php foreach ($navItems as $item): ?>
     <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
-       href="index.php?r=<?= $item['href'] ?>">
+       href="<?= isset($item['external']) && $item['external'] ? htmlspecialchars($item['href']) : 'index.php?r=' . $item['href'] ?>"
+       <?= isset($item['external']) && $item['external'] ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
       <i class="bi <?= $item['icon'] ?>"></i>
       <?= $item['label'] ?>
     </a>
@@ -140,7 +140,8 @@ $adminItems = [
     <div class="sidebar-section-label">Admin</div>
     <?php foreach ($adminItems as $item): ?>
       <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
-         href="index.php?r=<?= $item['href'] ?>">
+         href="<?= isset($item['external']) && $item['external'] ? htmlspecialchars($item['href']) : 'index.php?r=' . $item['href'] ?>"
+         <?= isset($item['external']) && $item['external'] ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
         <i class="bi <?= $item['icon'] ?>"></i>
         <?= $item['label'] ?>
       </a>
@@ -160,7 +161,8 @@ $adminItems = [
     <div class="sidebar-section-label" style="padding: 0 0.25rem; margin-top: 0;">Menu Utama</div>
     <?php foreach ($navItems as $item): ?>
       <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
-         href="index.php?r=<?= $item['href'] ?>">
+         href="<?= isset($item['external']) && $item['external'] ? htmlspecialchars($item['href']) : 'index.php?r=' . $item['href'] ?>"
+         <?= isset($item['external']) && $item['external'] ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
         <i class="bi <?= $item['icon'] ?>"></i>
         <?= $item['label'] ?>
       </a>
@@ -171,7 +173,8 @@ $adminItems = [
       <div class="sidebar-section-label" style="padding: 0 0.25rem;">Admin</div>
       <?php foreach ($adminItems as $item): ?>
         <a class="sidebar-link <?= isActive($item['r'], $current) ?>"
-           href="index.php?r=<?= $item['href'] ?>">
+           href="<?= isset($item['external']) && $item['external'] ? htmlspecialchars($item['href']) : 'index.php?r=' . $item['href'] ?>"
+           <?= isset($item['external']) && $item['external'] ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
           <i class="bi <?= $item['icon'] ?>"></i>
           <?= $item['label'] ?>
         </a>
